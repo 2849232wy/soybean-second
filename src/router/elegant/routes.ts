@@ -74,5 +74,36 @@ export const generatedRoutes: GeneratedRoute[] = [
       constant: true,
       hideInMenu: true
     }
+  },
+  {
+    name: 'order-handle',
+    path: '/order-handle',
+    component: 'layout.base$view.order-handle',
+    meta: {
+      title: 'order-handle',
+      i18nKey: 'route.order-handle',
+      order: 3,
+      keepAlive: false
+    }
+  },
+  {
+    name: 'unbox-cele',
+    path: '/unbox-cele',
+    component: 'layout.base',
+    meta: {
+      title: 'unbox-cele',
+      i18nKey: 'route.unbox-cele'
+    },
+    children: [
+      {
+        name: 'unbox-cele_order',
+        path: '/unbox-cele/order',
+        component: 'view.unbox-cele_order',
+        meta: {
+          title: 'unbox-cele_order',
+          i18nKey: 'route.unbox-cele_order'
+        }
+      }
+    ]
   }
 ];

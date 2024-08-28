@@ -23,6 +23,9 @@ declare module "@elegant-router/types" {
     "home": "/home";
     "iframe-page": "/iframe-page/:url";
     "login": "/login/:module(pwd-login|code-login|register|reset-pwd|bind-wechat)?";
+    "order-handle": "/order-handle";
+    "unbox-cele": "/unbox-cele";
+    "unbox-cele_order": "/unbox-cele/order";
   };
 
   /**
@@ -60,6 +63,8 @@ declare module "@elegant-router/types" {
     | "home"
     | "iframe-page"
     | "login"
+    | "order-handle"
+    | "unbox-cele"
   >;
 
   /**
@@ -82,6 +87,8 @@ declare module "@elegant-router/types" {
     | "iframe-page"
     | "login"
     | "home"
+    | "order-handle"
+    | "unbox-cele_order"
   >;
 
   /**
@@ -153,7 +160,7 @@ declare module "@elegant-router/types" {
         component: `view.${K}`;
       }
     : never;
-  
+
   /**
    * the center level route
    */
@@ -176,7 +183,7 @@ declare module "@elegant-router/types" {
         children: (CenterLevelRoute<GetChildRouteKey<K>> | LastLevelRoute<GetChildRouteKey<K>>)[];
       }
     : never;
-  
+
   /**
    * the custom first level route
    */

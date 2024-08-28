@@ -13,7 +13,8 @@ declare namespace StorageType {
     /** The i18n language */
     lang: App.I18n.LangType;
     /** The token */
-    token: string;
+    access_token: string;
+    expirein: number;
     /** Fixed sider with mix-menu */
     mixSiderFixed: CommonType.YesOrNo;
     /** The refresh token */

@@ -9,7 +9,6 @@ import type { RouteKey, RoutePath } from '@elegant-router/types';
 import { getRouteName } from '@/router/elegant/transform';
 import { useAuthStore } from '@/store/modules/auth';
 import { useRouteStore } from '@/store/modules/route';
-import { localStg } from '@/utils/storage';
 
 /**
  * create route guard
@@ -31,13 +30,14 @@ export function createRouteGuard(router: Router) {
     const loginRoute: RouteKey = 'login';
     const noAuthorizationRoute: RouteKey = '403';
 
-    const isLogin = Boolean(localStg.get('token'));
+    const isLogin = Boolean(authStore.userInfo.token);
     const needLogin = !to.meta.constant;
-    const routeRoles = to.meta.roles || [];
+    // const routeRoles = to.meta.roles || [];
 
-    const hasRole = authStore.userInfo.roles.some(role => routeRoles.includes(role));
+    // const hasRole = authStore.userInfo.roles.some(role => routeRoles.includes(role));
 
-    const hasAuth = authStore.isStaticSuper || !routeRoles.length || hasRole;
+
+    // const hasAuth = authStore.isStaticSuper || !routeRoles.length || hasRole;
 
     const routeSwitches: CommonType.StrategicPattern[] = [
       // if it is login route when logged in, then switch to the root page
@@ -63,14 +63,16 @@ export function createRouteGuard(router: Router) {
       },
       // if the user is logged in and has authorization, then it is allowed to access
       {
-        condition: isLogin && needLogin && hasAuth,
+        // condition: isLogin && needLogin && hasAuth,
+        condition: isLogin && needLogin,
         callback: () => {
           handleRouteSwitch(to, from, next);
         }
       },
       // if the user is logged in but does not have authorization, then switch to the 403 page
       {
-        condition: isLogin && needLogin && !hasAuth,
+        // condition: isLogin && needLogin && !hasAuth,
+        condition: isLogin && needLogin,
         callback: () => {
           next({ name: noAuthorizationRoute });
         }
@@ -146,7 +148,7 @@ async function initRoute(to: RouteLocationNormalized): Promise<RouteLocationRaw 
   }
 
   // if the auth route is not initialized, then initialize the auth route
-  const isLogin = Boolean(localStg.get('token'));
+  const isLogin = Boolean(authStore.userInfo.token);
   // initialize the auth route requires the user to be logged in, if not, redirect to the login page
   if (!isLogin) {
     const loginRoute: RouteKey = 'login';

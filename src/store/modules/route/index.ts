@@ -234,9 +234,10 @@ export const useRouteStore = defineStore(SetupStoreId.Route, () => {
     if (authStore.isStaticSuper) {
       addAuthRoutes(staticAuthRoutes);
     } else {
-      const filteredAuthRoutes = filterAuthRoutesByRoles(staticAuthRoutes, authStore.userInfo.roles);
+      // 不需要过滤
+      // const filteredAuthRoutes = filterAuthRoutesByRoles(staticAuthRoutes, authStore.userInfo.roles);
 
-      addAuthRoutes(filteredAuthRoutes);
+      addAuthRoutes(staticAuthRoutes);
     }
 
     handleConstantAndAuthRoutes();

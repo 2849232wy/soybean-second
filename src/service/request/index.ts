@@ -2,7 +2,6 @@ import type { AxiosResponse } from 'axios';
 import { BACKEND_ERROR_CODE, createFlatRequest, createRequest } from '@sa/axios';
 import { useAuthStore } from '@/store/modules/auth';
 import { $t } from '@/locales';
-import { localStg } from '@/utils/storage';
 import { getServiceBaseURL } from '@/utils/service';
 import { handleRefreshToken, showErrorMsg } from './shared';
 import type { RequestInstanceState } from './type';
@@ -12,19 +11,17 @@ const { baseURL, otherBaseURL } = getServiceBaseURL(import.meta.env, isHttpProxy
 
 export const request = createFlatRequest<App.Service.Response, RequestInstanceState>(
   {
-    baseURL,
-    headers: {
-      apifoxToken: 'XL299LiMEDZ0H5h3A29PxwQXdMJqWyY2'
-    }
+    baseURL
   },
   {
+    // 设置请求拦截器，添加token
     async onRequest(config) {
       const { headers } = config;
 
       // set token
-      const token = localStg.get('token');
-      const Authorization = token ? `Bearer ${token}` : null;
-      Object.assign(headers, { Authorization });
+      const authStore = useAuthStore();
+      const Authorization = authStore.userInfo.token ? `bearer ${authStore.userInfo.token}` : null;
+      Object.assign(headers, { Authorization, 'Site-Id': 1 });
 
       return config;
     },
@@ -33,6 +30,7 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
       // to change this logic by yourself, you can modify the `VITE_SERVICE_SUCCESS_CODE` in `.env` file
       return String(response.data.code) === import.meta.env.VITE_SERVICE_SUCCESS_CODE;
     },
+    /** 后端请求在业务上表示失败时调用的异步函数，例如：处理 token 过期 */
     async onBackendFail(response, instance) {
       const authStore = useAuthStore();
       const responseCode = String(response.data.code);
@@ -45,7 +43,7 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
         handleLogout();
         window.removeEventListener('beforeunload', handleLogout);
 
-        request.state.errMsgStack = request.state.errMsgStack.filter(msg => msg !== response.data.msg);
+        request.state.errMsgStack = request.state.errMsgStack.filter(message => message !== response.data.message);
       }
 
       // when the backend response code is in `logoutCodes`, it means the user will be logged out and redirected to login page
@@ -55,17 +53,17 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
         return null;
       }
 
-      // when the backend response code is in `modalLogoutCodes`, it means the user will be logged out by displaying a modal
+      // modalLogoutCodes:  后端请求失败并需要用户退出登录的 code（通过弹窗形式提醒），多个 code 用 , 分隔
       const modalLogoutCodes = import.meta.env.VITE_SERVICE_MODAL_LOGOUT_CODES?.split(',') || [];
-      if (modalLogoutCodes.includes(responseCode) && !request.state.errMsgStack?.includes(response.data.msg)) {
-        request.state.errMsgStack = [...(request.state.errMsgStack || []), response.data.msg];
+      if (modalLogoutCodes.includes(responseCode) && !request.state.errMsgStack?.includes(response.data.message)) {
+        request.state.errMsgStack = [...(request.state.errMsgStack || []), response.data.message];
 
         // prevent the user from refreshing the page
         window.addEventListener('beforeunload', handleLogout);
 
         window.$dialog?.error({
-          title: $t('common.error'),
-          content: response.data.msg,
+          title: response.data.message,
+          content: response.data.message,
           positiveText: $t('common.confirm'),
           maskClosable: false,
           closeOnEsc: false,
@@ -106,11 +104,14 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
       let message = error.message;
       let backendErrorCode = '';
 
-      // get backend error message and code
-      if (error.code === BACKEND_ERROR_CODE) {
-        message = error.response?.data?.msg || message;
-        backendErrorCode = String(error.response?.data?.code || '');
-      }
+      // // get backend error message and code
+      // if (BACKEND_ERROR_CODE.includes()) {
+      //   message = error.response?.data?.message || message;
+      //   backendErrorCode = String(error.response?.data?.code || '');
+      // }
+
+      message = error.response?.data.message || message;
+      backendErrorCode = String(error.response?.data?.code || '');
 
       // the error message is displayed in the modal
       const modalLogoutCodes = import.meta.env.VITE_SERVICE_MODAL_LOGOUT_CODES?.split(',') || [];
@@ -121,6 +122,8 @@ export const request = createFlatRequest<App.Service.Response, RequestInstanceSt
       // when the token is expired, refresh token and retry request, so no need to show error message
       const expiredTokenCodes = import.meta.env.VITE_SERVICE_EXPIRED_TOKEN_CODES?.split(',') || [];
       if (expiredTokenCodes.includes(backendErrorCode)) {
+        const authStore = useAuthStore();
+        authStore.resetStore();
         return;
       }
 
@@ -136,9 +139,9 @@ export const demoRequest = createRequest<App.Service.DemoResponse>(
   {
     async onRequest(config) {
       const { headers } = config;
-
+      const authStore = useAuthStore();
       // set token
-      const token = localStg.get('token');
+      const token = authStore.userInfo.token;
       const Authorization = token ? `Bearer ${token}` : null;
       Object.assign(headers, { Authorization });
 

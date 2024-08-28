@@ -38,22 +38,22 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
     apiParams,
     columns: config.columns,
     transformer: res => {
-      const { records = [], current = 1, size = 10, total = 0 } = res.data || {};
+      const { data: resData = [], current_page: page = 1, per_page: page_size = 10, total = 0 } = res.data || {};
 
       // Ensure that the size is greater than 0, If it is less than 0, it will cause paging calculation errors.
-      const pageSize = size <= 0 ? 10 : size;
+      const pageSize = page_size <= 0 ? 10 : page_size;
 
-      const recordsWithIndex = records.map((item, index) => {
+      const recordsWithIndex = resData.map((item, index) => {
         return {
           ...item,
-          index: (current - 1) * pageSize + index + 1
+          index: (page - 1) * pageSize + index + 1
         };
       });
 
       return {
         data: recordsWithIndex,
-        pageNum: current,
-        pageSize,
+        pageNum: page,
+        pageSize: page_size,
         total
       };
     },
@@ -114,20 +114,19 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
     },
     immediate
   });
-
-  const pagination: PaginationProps = reactive({
+  const pagination = reactive<PaginationProps>({
     page: 1,
     pageSize: 10,
     showSizePicker: true,
+    showQuickJumper: true,
     pageSizes: [10, 15, 20, 25, 30],
     onUpdatePage: async (page: number) => {
       pagination.page = page;
 
       updateSearchParams({
-        current: page,
-        size: pagination.pageSize!
+        page,
+        page_size: pagination.pageSize!
       });
-
       getData();
     },
     onUpdatePageSize: async (pageSize: number) => {
@@ -135,21 +134,18 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
       pagination.page = 1;
 
       updateSearchParams({
-        current: pagination.page,
-        size: pageSize
+        page: pagination.page,
+        page_size: pageSize
       });
 
       getData();
-    },
-    ...(showTotal
-      ? {
-          prefix: page => $t('datatable.itemCount', { total: page.itemCount })
-        }
-      : {})
+    }
   });
 
   // this is for mobile, if the system does not support mobile, you can use `pagination` directly
   const mobilePagination = computed(() => {
+    // eslint-disable-next-line
+    // @ts-ignore
     const p: PaginationProps = {
       ...pagination,
       pageSlot: isMobile.value ? 3 : 9,
@@ -174,8 +170,8 @@ export function useTable<A extends NaiveUI.TableApiFn>(config: NaiveUI.NaiveTabl
     });
 
     updateSearchParams({
-      current: pageNum,
-      size: pagination.pageSize!
+      page: pageNum,
+      page_size: pagination.pageSize!
     });
 
     await getData();

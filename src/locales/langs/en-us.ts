@@ -154,7 +154,10 @@ const local: App.I18n.Schema = {
     404: 'Page Not Found',
     500: 'Server Error',
     'iframe-page': 'Iframe',
-    home: 'Home'
+    home: 'Home',
+    'order-handle': '订单管理',
+    'unbox-cele': 'unbox cele',
+    'unbox-cele_order': 'unbox cele order'
   },
   page: {
     login: {

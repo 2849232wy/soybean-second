@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { $t } from '@/locales';
 import { loginModuleRecord } from '@/constants/app';
 import { useRouterPush } from '@/hooks/common/router';
@@ -15,28 +15,30 @@ const { toggleLoginModule } = useRouterPush();
 const { formRef, validate } = useNaiveForm();
 
 interface FormModel {
-  userName: string;
+  account: string;
   password: string;
 }
 
 const model: FormModel = reactive({
-  userName: 'Soybean',
+  account: 'admin',
   password: '123456'
 });
+
+const isLoging = ref<boolean>(false)
 
 const rules = computed<Record<keyof FormModel, App.Global.FormRule[]>>(() => {
   // inside computed to make locale reactive, if not apply i18n, you can define it without computed
   const { formRules } = useFormRules();
 
   return {
-    userName: formRules.userName,
+    account: formRules.account,
     password: formRules.pwd
   };
 });
 
 async function handleSubmit() {
   await validate();
-  await authStore.login(model.userName, model.password);
+  await authStore.login(model.account, model.password);
 }
 
 type AccountKey = 'super' | 'admin' | 'user';
@@ -44,7 +46,7 @@ type AccountKey = 'super' | 'admin' | 'user';
 interface Account {
   key: AccountKey;
   label: string;
-  userName: string;
+  account: string;
   password: string;
 }
 
@@ -52,32 +54,39 @@ const accounts = computed<Account[]>(() => [
   {
     key: 'super',
     label: $t('page.login.pwdLogin.superAdmin'),
-    userName: 'Super',
+    account: 'Super',
     password: '123456'
   },
   {
     key: 'admin',
     label: $t('page.login.pwdLogin.admin'),
-    userName: 'Admin',
+    account: 'Admin',
     password: '123456'
   },
   {
     key: 'user',
     label: $t('page.login.pwdLogin.user'),
-    userName: 'User',
+    account: 'User',
     password: '123456'
   }
 ]);
 
-async function handleAccountLogin(account: Account) {
-  await authStore.login(account.userName, account.password);
+async function handleAccountLogin(user: Account) {
+  try{
+    isLoging.value = true;
+    await authStore.login(user.account, user.password);
+  }catch{
+
+  }finally{
+    isLoging.value = false;
+  }
 }
 </script>
 
 <template>
   <NForm ref="formRef" :model="model" :rules="rules" size="large" :show-label="false">
-    <NFormItem path="userName">
-      <NInput v-model:value="model.userName" :placeholder="$t('page.login.common.userNamePlaceholder')" />
+    <NFormItem path="account">
+      <NInput v-model:value="model.account" :placeholder="$t('page.login.common.userNamePlaceholder')" />
     </NFormItem>
     <NFormItem path="password">
       <NInput
@@ -94,7 +103,7 @@ async function handleAccountLogin(account: Account) {
           {{ $t('page.login.pwdLogin.forgetPassword') }}
         </NButton>
       </div>
-      <NButton type="primary" size="large" round block :loading="authStore.loginLoading" @click="handleSubmit">
+      <NButton type="primary" size="large" round block :loading="isLoging" @click="handleSubmit">
         {{ $t('common.confirm') }}
       </NButton>
       <div class="flex-y-center justify-between gap-12px">

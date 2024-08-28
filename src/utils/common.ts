@@ -56,3 +56,19 @@ export function toggleHtmlClass(className: string) {
     remove
   };
 }
+
+export function filterAttrIsNull(obj: Record<string | number, any>) {
+  return Object.keys(obj).reduce(
+    (pre, cur) => {
+      if (Array.isArray(obj[cur])) {
+        if (obj[cur].length) {
+          pre[cur] = obj[cur];
+        }
+      } else if (obj[cur]) {
+        pre[cur] = obj[cur];
+      }
+      return pre;
+    },
+    {} as Record<string | number, any>
+  );
+}

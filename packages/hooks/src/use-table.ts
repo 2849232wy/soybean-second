@@ -99,7 +99,6 @@ export default function useHookTable<A extends ApiFn, T, C>(config: TableConfig<
     const transformed = transformer(response as Awaited<ReturnType<A>>);
 
     data.value = transformed.data;
-
     setEmpty(transformed.data.length === 0);
 
     await config.onFetched?.(transformed);
@@ -124,7 +123,7 @@ export default function useHookTable<A extends ApiFn, T, C>(config: TableConfig<
    *
    * @param params
    */
-  function updateSearchParams(params: Partial<Parameters<A>[0]>) {
+  function updateSearchParams(params: Record<string, unknown>) {
     Object.assign(searchParams, params);
   }
 

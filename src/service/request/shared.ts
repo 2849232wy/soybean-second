@@ -15,8 +15,7 @@ export async function handleRefreshToken(axiosConfig: AxiosRequestConfig) {
   const refreshToken = localStg.get('refreshToken') || '';
   const { error, data } = await fetchRefreshToken(refreshToken);
   if (!error) {
-    localStg.set('token', data.token);
-    localStg.set('refreshToken', data.refreshToken);
+    // localStg.set('refreshToken', data.refreshToken?);
 
     const config = { ...axiosConfig };
     if (config.headers) {

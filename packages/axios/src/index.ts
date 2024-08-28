@@ -22,6 +22,7 @@ function createCommonRequest<ResponseData = any>(
   const axiosConf = createAxiosConfig(axiosConfig);
   const instance = axios.create(axiosConf);
 
+  // 创建一个中断请求的map
   const abortControllerMap = new Map<string, AbortController>();
 
   // config axios retry
